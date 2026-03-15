@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Splitter Pro</title>
+    <title>Instagram Grid Splitter Pro (Image & Video)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -111,10 +111,10 @@
         <header class="text-center mb-16 animate-fade">
             <span class="inline-block px-4 py-1.5 mb-4 text-xs font-bold tracking-widest text-indigo-600 uppercase bg-indigo-50 rounded-full">Alat Kreatif Instagram</span>
             <h1 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
-                Custom <span class="gradient-text">Grid Splitter</span>
+                Grid <span class="gradient-text">Image & Video</span> Splitter
             </h1>
             <p class="text-slate-500 max-w-2xl mx-auto text-lg">
-                Atur kolom, baris, dan jarak secara kustom untuk membuat feed Instagram yang unik dan presisi.
+                Potong Gambar atau ambil frame Video untuk dijadikan grid Instagram yang presisi.
             </p>
         </header>
 
@@ -126,14 +126,14 @@
                 <div class="glass-card p-6 rounded-3xl shadow-xl shadow-slate-200/50">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-lg shadow-indigo-200">1</div>
-                        <h3 class="font-bold text-slate-800">Unggah Gambar</h3>
+                        <h3 class="font-bold text-slate-800">Unggah File</h3>
                     </div>
                     
                     <div id="dropZone" class="drop-zone relative rounded-xl p-6 text-center cursor-pointer hover:bg-slate-50 transition-colors">
-                        <input type="file" id="imageInput" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <input type="file" id="fileInput" accept="image/*,video/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                         <div id="uploadUI">
-                            <p class="text-sm font-semibold text-slate-700">Pilih Gambar</p>
-                            <p class="text-xs text-slate-400 mt-1">Seret & lepas di sini</p>
+                            <p class="text-sm font-semibold text-slate-700">Pilih Media</p>
+                            <p class="text-xs text-slate-400 mt-1">Gambar atau Video</p>
                         </div>
                         <div id="fileInfo" class="hidden">
                             <p class="text-sm font-bold text-indigo-600 truncate" id="fileNameDisp"></p>
@@ -148,7 +148,6 @@
                         <h3 class="font-bold text-slate-800">Pengaturan Grid</h3>
                     </div>
 
-                    <!-- Baris -->
                     <div class="space-y-2">
                         <div class="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
                             <span>Baris (Rows)</span>
@@ -157,7 +156,6 @@
                         <input type="range" id="gridRows" min="1" max="10" value="3">
                     </div>
 
-                    <!-- Kolom -->
                     <div class="space-y-2">
                         <div class="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
                             <span>Kolom (Cols)</span>
@@ -166,7 +164,6 @@
                         <input type="range" id="gridCols" min="1" max="6" value="3">
                     </div>
 
-                    <!-- Gap -->
                     <div class="space-y-2">
                         <div class="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
                             <span>Jarak (Gap)</span>
@@ -174,6 +171,16 @@
                         </div>
                         <input type="range" id="gridGap" min="0" max="20" value="4">
                     </div>
+                </div>
+
+                <!-- Video Seek (Only for Video) -->
+                <div id="videoControls" class="glass-card p-6 rounded-3xl shadow-xl shadow-slate-200/50 space-y-4 hidden animate-fade">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-lg shadow-indigo-200">3</div>
+                        <h3 class="font-bold text-slate-800">Pilih Frame Video</h3>
+                    </div>
+                    <video id="sourceVideo" class="w-full rounded-xl bg-black max-h-40" controls></video>
+                    <p class="text-[10px] text-slate-400 text-center uppercase tracking-wide">Putar video dan pause pada frame yang ingin dipotong</p>
                 </div>
 
                 <!-- Action Button -->
@@ -199,7 +206,7 @@
                             </svg>
                         </div>
                         <h4 class="text-slate-800 font-bold text-lg mb-1">Pratinjau Kustom</h4>
-                        <p class="text-slate-400 text-sm">Unggah gambar untuk melihat hasil grid.</p>
+                        <p class="text-slate-400 text-sm">Unggah file media untuk melihat hasil grid.</p>
                     </div>
                     
                     <div id="gridContainer" class="grid-preview w-full max-w-lg hidden relative z-10"></div>
@@ -208,14 +215,15 @@
         </main>
 
         <footer class="mt-16 text-center text-slate-400 text-xs">
-            &copy; 2024 IG Splitter Pro • Pemrosesan Presisi Lokal
+            &copy; 2024 IG Splitter Pro • Mendukung Gambar & Video
         </footer>
     </div>
 
     <canvas id="canvas" class="hidden"></canvas>
+    <canvas id="tempCanvas" class="hidden"></canvas>
 
     <script>
-        const imageInput = document.getElementById('imageInput');
+        const fileInput = document.getElementById('fileInput');
         const gridRowsInput = document.getElementById('gridRows');
         const gridColsInput = document.getElementById('gridCols');
         const gridGapInput = document.getElementById('gridGap');
@@ -227,13 +235,19 @@
         const gridContainer = document.getElementById('gridContainer');
         const emptyState = document.getElementById('emptyState');
         const actionArea = document.getElementById('actionArea');
+        const videoControls = document.getElementById('videoControls');
+        const sourceVideo = document.getElementById('sourceVideo');
         const downloadAllBtn = document.getElementById('downloadAllBtn');
         const dropZone = document.getElementById('dropZone');
         const fileNameDisp = document.getElementById('fileNameDisp');
+        
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const tempCanvas = document.getElementById('tempCanvas');
+        const tempCtx = tempCanvas.getContext('2d');
 
-        let originalImage = null;
+        let sourceImage = null;
+        let isVideo = false;
 
         // Input Listeners
         [gridRowsInput, gridColsInput, gridGapInput].forEach(input => {
@@ -245,6 +259,18 @@
             });
         });
 
+        // Video Frame Change Listener
+        sourceVideo.addEventListener('seeked', updateGrid);
+        sourceVideo.addEventListener('play', () => {
+            const loop = () => {
+                if (!sourceVideo.paused && !sourceVideo.ended) {
+                    updateGrid();
+                    requestAnimationFrame(loop);
+                }
+            };
+            loop();
+        });
+
         // Drag & Drop
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('active'); });
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
@@ -254,43 +280,75 @@
             handleFile(e.dataTransfer.files[0]);
         });
 
-        imageInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
 
         function handleFile(file) {
-            if (!file || !file.type.startsWith('image/')) return;
+            if (!file) return;
+            
             fileNameDisp.textContent = file.name;
             document.getElementById('uploadUI').classList.add('hidden');
             document.getElementById('fileInfo').classList.remove('hidden');
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                originalImage = new Image();
-                originalImage.onload = function() {
+            isVideo = file.type.startsWith('video/');
+            
+            if (isVideo) {
+                videoControls.classList.remove('hidden');
+                const url = URL.createObjectURL(file);
+                sourceVideo.src = url;
+                sourceVideo.onloadedmetadata = () => {
                     updateGrid();
-                    actionArea.classList.remove('hidden');
-                    setTimeout(() => actionArea.classList.remove('opacity-0', 'translate-y-4'), 50);
+                    showActions();
                 };
-                originalImage.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
+                sourceImage = null;
+            } else if (file.type.startsWith('image/')) {
+                videoControls.classList.add('hidden');
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    sourceImage = new Image();
+                    sourceImage.onload = function() {
+                        updateGrid();
+                        showActions();
+                    };
+                    sourceImage.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function showActions() {
+            actionArea.classList.remove('hidden');
+            setTimeout(() => actionArea.classList.remove('opacity-0', 'translate-y-4'), 50);
         }
 
         function updateGrid() {
-            if (!originalImage) return;
-
             const rows = parseInt(gridRowsInput.value);
             const cols = parseInt(gridColsInput.value);
             const gap = parseInt(gridGapInput.value);
 
+            let sWidth, sHeight;
+            if (isVideo) {
+                if (!sourceVideo.videoWidth) return;
+                sWidth = sourceVideo.videoWidth;
+                sHeight = sourceVideo.videoHeight;
+            } else {
+                if (!sourceImage) return;
+                sWidth = sourceImage.width;
+                sHeight = sourceImage.height;
+            }
+
             emptyState.classList.add('hidden');
             gridContainer.classList.remove('hidden');
-
             gridContainer.innerHTML = '';
             gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
             gridContainer.style.gap = `${gap}px`;
 
+            // Capture current frame to a temporary canvas for preview background
+            tempCanvas.width = sWidth;
+            tempCanvas.height = sHeight;
+            tempCtx.drawImage(isVideo ? sourceVideo : sourceImage, 0, 0);
+            const frameData = tempCanvas.toDataURL('image/jpeg', 0.5);
+
             const cellsCount = rows * cols;
-            
             for (let i = 0; i < cellsCount; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'grid-cell shadow-inner';
@@ -299,7 +357,7 @@
                 const r = Math.floor(i / cols);
                 const c = i % cols;
                 
-                cell.style.backgroundImage = `url(${originalImage.src})`;
+                cell.style.backgroundImage = `url(${frameData})`;
                 cell.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
                 
                 const posX = cols > 1 ? (c / (cols - 1)) * 100 : 0;
@@ -312,20 +370,24 @@
         }
 
         function downloadPiece(row, col) {
-            if (!originalImage) return;
+            const source = isVideo ? sourceVideo : sourceImage;
+            if (!source) return;
 
             const rows = parseInt(gridRowsInput.value);
             const cols = parseInt(gridColsInput.value);
 
-            const pieceWidth = originalImage.width / cols;
-            const pieceHeight = originalImage.height / rows;
+            const sWidth = isVideo ? sourceVideo.videoWidth : sourceImage.width;
+            const sHeight = isVideo ? sourceVideo.videoHeight : sourceImage.height;
+
+            const pieceWidth = sWidth / cols;
+            const pieceHeight = sHeight / rows;
 
             canvas.width = pieceWidth;
             canvas.height = pieceHeight;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(
-                originalImage,
+                source,
                 col * pieceWidth, row * pieceHeight, pieceWidth, pieceHeight,
                 0, 0, pieceWidth, pieceHeight
             );
@@ -338,7 +400,6 @@
         }
 
         downloadAllBtn.addEventListener('click', async function() {
-            if (!originalImage) return;
             const rows = parseInt(gridRowsInput.value);
             const cols = parseInt(gridColsInput.value);
 
