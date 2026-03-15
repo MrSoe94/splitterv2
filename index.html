@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Grid Splitter Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #f8fafc, #eff6ff);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .grid-preview {
+            display: grid;
+            gap: 4px;
+            background-color: #f1f5f9;
+            border-radius: 12px;
+            overflow: hidden;
+            padding: 4px;
+        }
+        .grid-cell {
+            background-size: cover;
+            background-position: center;
+            aspect-ratio: 1 / 1;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 4px;
+        }
+        .grid-cell:hover {
+            transform: scale(0.98);
+            filter: brightness(0.9);
+            z-index: 10;
+        }
+        .grid-cell:hover::before {
+            content: 'Unduh';
+            position: absolute;
+            inset: 0;
+            background: rgba(79, 70, 229, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .grid-cell::after {
+            content: attr(data-index);
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 6px;
+            z-index: 20;
+        }
+        .drop-zone {
+            transition: all 0.3s ease;
+            border: 2px dashed #cbd5e1;
+        }
+        .drop-zone.active {
+            border-color: #6366f1;
+            background-color: #eef2ff;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-900">
+
+    <div class="max-w-6xl mx-auto px-6 py-12">
+        <header class="text-center mb-16 animate-fade">
+            <span class="inline-block px-4 py-1.5 mb-4 text-xs font-bold tracking-widest text-indigo-600 uppercase bg-indigo-50 rounded-full">Alat Kreatif Instagram</span>
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
+                Potong Gambar dengan <span class="gradient-text">Presisi Tinggi</span>
+            </h1>
+            <p class="text-slate-500 max-w-2xl mx-auto text-lg">
+                Ubah foto tunggal menjadi grid puzzle yang estetik untuk profil Instagram Anda. Cepat, gratis, dan diproses langsung di browser.
+            </p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <!-- Sidebar Kontrol -->
+            <div class="lg:col-span-4 space-y-8 animate-fade" style="animation-delay: 0.1s;">
+                <!-- Step 1: Upload -->
+                <div class="glass-card p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-indigo-200">1</div>
+                        <h3 class="font-bold text-slate-800">Unggah Gambar</h3>
+                    </div>
+                    
+                    <div id="dropZone" class="drop-zone relative rounded-2xl p-8 text-center cursor-pointer hover:bg-slate-50 transition-colors">
+                        <input type="file" id="imageInput" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <div id="uploadUI">
+                            <div class="bg-indigo-50 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                            </div>
+                            <p class="text-sm font-semibold text-slate-700">Pilih File</p>
+                            <p class="text-xs text-slate-400 mt-1">atau tarik gambar ke sini</p>
+                        </div>
+                        <div id="fileInfo" class="hidden">
+                            <p class="text-sm font-bold text-indigo-600 truncate" id="fileNameDisp"></p>
+                            <p class="text-xs text-slate-400 mt-1">Klik untuk mengganti gambar</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Format -->
+                <div class="glass-card p-8 rounded-3xl shadow-xl shadow-slate-200/50">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-indigo-200">2</div>
+                        <h3 class="font-bold text-slate-800">Pilih Layout</h3>
+                    </div>
+                    
+                    <select id="gridRows" class="w-full bg-slate-50 p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-medium text-slate-700">
+                        <option value="1">3 x 1 — Banner Tipis</option>
+                        <option value="2">3 x 2 — Kotak Sedang</option>
+                        <option value="3" selected>3 x 3 — Kotak Standar (9)</option>
+                        <option value="4">3 x 4 — Portrait Feed</option>
+                        <option value="5">3 x 5 — Panjang</option>
+                        <option value="6">3 x 6 — Puzzle Jumbo</option>
+                    </select>
+                </div>
+
+                <!-- Action Button -->
+                <div id="actionArea" class="hidden opacity-0 transform translate-y-4 transition-all duration-500">
+                    <button id="downloadAllBtn" class="group relative w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 shadow-xl shadow-indigo-200 overflow-hidden">
+                        <div class="absolute inset-0 w-3 bg-white/20 transition-all duration-[400ms] group-hover:w-full"></div>
+                        <span class="relative flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Download Semua Kotak
+                        </span>
+                    </button>
+                    <p class="text-[10px] text-slate-400 mt-4 text-center leading-relaxed">
+                        Tip: Anda juga dapat mengklik kotak tertentu pada pratinjau untuk mendownload bagian tersebut saja.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Area Preview -->
+            <div class="lg:col-span-8 animate-fade" style="animation-delay: 0.2s;">
+                <div id="previewWrapper" class="glass-card p-6 md:p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 min-h-[500px] flex items-center justify-center relative overflow-hidden">
+                    <!-- Placeholder Background -->
+                    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#4f46e5 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    
+                    <div id="emptyState" class="text-center relative z-10 px-10">
+                        <div class="bg-slate-100 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <svg class="h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <h4 class="text-slate-800 font-bold text-xl mb-2">Pratinjau Grid</h4>
+                        <p class="text-slate-400 max-w-xs mx-auto text-sm">Pratinjau potongan gambar Anda akan muncul di sini secara otomatis setelah gambar diunggah.</p>
+                    </div>
+                    
+                    <div id="gridContainer" class="grid-preview w-full max-w-lg hidden relative z-10"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-20 border-t border-slate-200 pt-10 text-center">
+            <div class="flex items-center justify-center gap-4 mb-6">
+                <div class="h-px w-10 bg-slate-200"></div>
+                <p class="text-slate-400 text-sm font-medium">IG Splitter Pro v2.0</p>
+                <div class="h-px w-10 bg-slate-200"></div>
+            </div>
+            <p class="text-xs text-slate-300">Diproses secara lokal di browser Anda untuk keamanan privasi maksimal.</p>
+        </footer>
+    </div>
+
+    <!-- Hidden Canvas -->
+    <canvas id="canvas" class="hidden"></canvas>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const gridRowsInput = document.getElementById('gridRows');
+        const gridContainer = document.getElementById('gridContainer');
+        const emptyState = document.getElementById('emptyState');
+        const actionArea = document.getElementById('actionArea');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const dropZone = document.getElementById('dropZone');
+        const uploadUI = document.getElementById('uploadUI');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileNameDisp = document.getElementById('fileNameDisp');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let originalImage = null;
+
+        // Drag & Drop Handlers
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('active');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('active');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFile(files[0]);
+        }, false);
+
+        imageInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) return;
+
+            fileNameDisp.textContent = file.name;
+            uploadUI.classList.add('hidden');
+            fileInfo.classList.remove('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                originalImage = new Image();
+                originalImage.onload = function() {
+                    updateGrid();
+                    // Show action area with animation
+                    actionArea.classList.remove('hidden');
+                    setTimeout(() => {
+                        actionArea.classList.remove('opacity-0', 'translate-y-4');
+                    }, 50);
+                };
+                originalImage.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        gridRowsInput.addEventListener('change', updateGrid);
+
+        function updateGrid() {
+            if (!originalImage) return;
+
+            const rows = parseInt(gridRowsInput.value);
+            const cols = 3;
+
+            emptyState.classList.add('hidden');
+            gridContainer.classList.remove('hidden');
+
+            gridContainer.innerHTML = '';
+            gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+            const cellsCount = rows * cols;
+            
+            for (let i = 0; i < cellsCount; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell shadow-inner';
+                cell.setAttribute('data-index', i + 1);
+                
+                const r = Math.floor(i / cols);
+                const c = i % cols;
+                
+                cell.style.backgroundImage = `url(${originalImage.src})`;
+                cell.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
+                
+                const posX = cols > 1 ? (c / (cols - 1)) * 100 : 0;
+                const posY = rows > 1 ? (r / (rows - 1)) * 100 : 0;
+                
+                cell.style.backgroundPosition = `${posX}% ${posY}%`;
+                
+                cell.onclick = () => downloadPiece(r, c);
+                gridContainer.appendChild(cell);
+            }
+        }
+
+        function downloadPiece(row, col) {
+            if (!originalImage) return;
+
+            const rows = parseInt(gridRowsInput.value);
+            const cols = 3;
+
+            const pieceWidth = originalImage.width / cols;
+            const pieceHeight = originalImage.height / rows;
+
+            canvas.width = pieceWidth;
+            canvas.height = pieceHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(
+                originalImage,
+                col * pieceWidth, row * pieceHeight, pieceWidth, pieceHeight,
+                0, 0, pieceWidth, pieceHeight
+            );
+
+            const link = document.createElement('a');
+            const fileNumber = (row * cols) + col + 1;
+            link.download = `part_${fileNumber}_grid.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        }
+
+        downloadAllBtn.addEventListener('click', async function() {
+            if (!originalImage) return;
+            const rows = parseInt(gridRowsInput.value);
+            const cols = 3;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    downloadPiece(r, c);
+                    await new Promise(res => setTimeout(res, 350));
+                }
+            }
+        });
+    </script>
+</body>
+</html>
